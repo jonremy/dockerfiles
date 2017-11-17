@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# This is for rlwrap because of https://github.com/moby/moby/issues/25450
+sleep 0.1;
+
+# rlwrap is used because sicstus doesn't handle the arrow keys properly
+exec rlwrap sicstus "$@"

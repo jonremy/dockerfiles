@@ -1,5 +1,5 @@
 # Pre-requisites:
-#  - Sicstus install archive
+#  - Sicstus install archive (*.tar.gz)
 #  - License information needed in install.cache
 #
 # Build with:
@@ -8,22 +8,20 @@
 #  docker build --build-arg UID=$(id -u) -t jremy/sicstus .
 #
 # Use with:
-#  alias sicstus='docker run --rm -v $PWD:/work -w /work -it jremy/sicstus bash -c "sleep .1; exec rlwrap sicstus \"\$@\";" --'
+#  alias sicstus='docker run --rm -v $PWD:/work -w /work -it jremy/sicstus sicstusw'
 #
-# Rlwrap is used because sicstus doesn't handle the arrow keys properly
-# The sleep is here for rlwrap because of https://github.com/moby/moby/issues/25450
-
-FROM debian:jessie AS build
+FROM debian:9 AS build
 
 RUN apt-get -y update \
  && apt-get install -y \
 		build-essential \
  && rm -rf /var/lib/apt/lists/*
 
-ARG ARCHIVE=sp-4.3.5-x86_64-linux-glibc2.17.tar.gz
-COPY $ARCHVE install.cache /tmp/
+COPY *.tar.gz install.cache /tmp/
 
 RUN cd /tmp \
+ && ARCHIVE=$(ls *.tar.gz | tail -n 1) \
+ && echo "Using archive $ARCHIVE" \
  && mkdir installer \
  && tar -xzvf $ARCHIVE --strip 1 -C installer \
  && cp install.cache installer/ \
@@ -32,7 +30,7 @@ RUN cd /tmp \
 
 
 
-FROM debian:jessie
+FROM debian:9
 
 RUN apt-get -y update \
  && apt-get install -y \
@@ -40,8 +38,10 @@ RUN apt-get -y update \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /opt/sicstus /opt/sicstus
+COPY sicstusw /usr/local/bin/
 
-RUN ln -s /opt/sicstus/bin/sicstus /usr/local/bin/sicstus
+RUN ln -s /opt/sicstus/bin/sicstus /usr/local/bin/sicstus \
+ && chmod +x /usr/local/bin/sicstusw
 
 ARG UID=1000
 RUN useradd -m -s /bin/bash -u $UID user
