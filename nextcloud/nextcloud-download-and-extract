@@ -1,0 +1,45 @@
+#!/bin/bash
+set -e
+
+if [ $# -lt 2 ]; then
+	echo "Usage: $0 nextcloud_version extract_path"
+	exit 1
+fi
+
+INSTALL_VERSION=$1
+INSTALL_PATH=$2
+
+if [ -z "$INSTALL_PATH" ]; then
+	echo "Invalid installation path."
+	exit 1
+fi
+
+function ncdl {
+	rm -f /tmp/$1
+	echo "Downloading $1 to /tmp ..."
+	curl -fL# -o /tmp/$1 "https://download.nextcloud.com/server/releases/$1"
+}
+
+echo "Downloading Nextcloud $INSTALL_VERSION and extracting into $INSTALL_PATH"
+
+ARCHIVE_NAME="nextcloud-${INSTALL_VERSION}.tar.bz2"
+CHECKSUM_NAME="$ARCHIVE_NAME.sha256"
+
+# Downloading archive (except if already downloaded)
+if [ ! -f /tmp/$ARCHIVE_NAME ]; then
+	ncdl $ARCHIVE_NAME
+fi
+
+# Downloading archive checksum
+ncdl $CHECKSUM_NAME
+
+echo "Validating SHA256 sum..."
+bash -c "cd /tmp; sha256sum --strict -c $CHECKSUM_NAME;"
+rm -f /tmp/$CHECKSUM_NAME
+
+echo "Extracting..."
+mkdir -p $INSTALL_PATH
+tar -xjf /tmp/$ARCHIVE_NAME --strip 1 -C $INSTALL_PATH
+
+echo "Downloading and extraction done !"
+echo "The file /tmp/$ARCHIVE_NAME can safely be deleted."
