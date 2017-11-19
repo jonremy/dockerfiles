@@ -1,5 +1,3 @@
-# Build with:
-#  docker build --build-arg UID=$(id -u) -t jremy/pdftk .
 # Use with:
 #  alias pdftk='docker run --rm -v $PWD:/files -w /files -u $(id -u):$(id -g) jremy/pdftk pdftk'
 #
