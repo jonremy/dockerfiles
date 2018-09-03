@@ -1,0 +1,26 @@
+#!/bin/bash
+set -e
+
+if [ $# -ne 2 ]; then
+	echo "Usage: qasm2 <pdf|png> <qasm_file>"
+	echo "Example: qasm2 png myfile.qasm"
+	exit 1
+fi
+
+FORMAT="$1"
+FILE="$2"
+ORIGIN="$PWD"
+TMPDIR=$(mktemp -d)
+
+cp $FILE $TMPDIR
+
+cd /opt/qasm2circ
+cp meter.epsf  qasm2pdf  qasm2png  qasm2tex.py xyqcirc.tex $TMPDIR
+
+cd $TMPDIR
+./qasm2$FORMAT *.qasm
+
+mv $TMPDIR/*.$FORMAT $ORIGIN
+
+cd /
+rm -rf $TMPDIR
